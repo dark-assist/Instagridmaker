@@ -1,0 +1,497 @@
+/* ============================================================
+   Instagram 3×4 Grid Maker — Style Sheet
+   Dark theme · Glassmorphism · Mobile-first · Responsive
+   ============================================================ */
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg:          #0B0B0B;
+  --bg-card:     #181818;
+  --bg-card-alt: #1e1e1e;
+  --accent:      #6C63FF;
+  --accent-hover:#7b73ff;
+  --accent-glow: rgba(108, 99, 255, .25);
+  --text:        #e8e8e8;
+  --text-dim:    #888;
+  --border:      rgba(255, 255, 255, .08);
+  --radius:      18px;
+  --radius-sm:   10px;
+  --shadow:      0 8px 32px rgba(0, 0, 0, .45);
+  --transition:  .25s cubic-bezier(.4, 0, .2, 1);
+  --font:        'Inter', system-ui, -apple-system, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------- Page Switching ---------- */
+.page {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.page.active {
+  display: flex;
+}
+
+/* ============================================================
+   UPLOAD PAGE
+   ============================================================ */
+
+/* ---------- Header ---------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  flex-shrink: 0;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-text {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -.02em;
+}
+
+/* ---------- Main Upload Area ---------- */
+.upload-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+  gap: 28px;
+  overflow-y: auto;
+}
+
+.hero-section {
+  text-align: center;
+  max-width: 500px;
+}
+.hero-title {
+  font-size: clamp(24px, 5vw, 36px);
+  font-weight: 700;
+  letter-spacing: -.03em;
+  margin-bottom: 12px;
+  line-height: 1.15;
+}
+.hero-subtitle {
+  font-size: clamp(14px, 2.5vw, 16px);
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* ---------- Upload Card ---------- */
+.upload-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px;
+  box-shadow: var(--shadow);
+}
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 24px;
+  border-radius: calc(var(--radius) - 4px);
+  border: 2px dashed rgba(108, 99, 255, .3);
+  background: rgba(108, 99, 255, .03);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition);
+  user-select: none;
+}
+.upload-dropzone:hover,
+.upload-dropzone.drag-over {
+  border-color: var(--accent);
+  background: rgba(108, 99, 255, .08);
+}
+.upload-icon {
+  color: var(--accent);
+  opacity: .8;
+}
+.upload-heading {
+  font-size: 18px;
+  font-weight: 600;
+}
+.upload-text {
+  font-size: 14px;
+  color: var(--text-dim);
+}
+.upload-formats {
+  font-size: 12px;
+  color: var(--text-dim);
+  opacity: .6;
+  margin-top: 4px;
+}
+
+/* ---------- Features Row ---------- */
+.features-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.feature-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .04);
+  border: 1px solid var(--border);
+}
+
+/* ---------- Footer ---------- */
+.upload-footer {
+  padding: 16px 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.upload-footer p {
+  font-size: 12px;
+  color: var(--text-dim);
+  opacity: .5;
+}
+
+/* ============================================================
+   EDITOR PAGE
+   ============================================================ */
+
+/* ---------- Editor Header ---------- */
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  flex-shrink: 0;
+  background: rgba(11, 11, 11, .85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+}
+.editor-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+/* ---------- Buttons ---------- */
+.btn-back,
+.btn-reset {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--font);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.btn-back:hover,
+.btn-reset:hover {
+  background: var(--bg-card-alt);
+  border-color: rgba(255, 255, 255, .15);
+}
+.btn-back svg,
+.btn-reset svg {
+  flex-shrink: 0;
+}
+
+/* ---------- Canvas Wrapper ---------- */
+.canvas-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  background: #000;
+}
+.canvas-wrapper canvas {
+  display: block;
+  /* touch-action is set via JS for pointer events */
+}
+
+/* ---------- Editor Controls ---------- */
+.editor-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  gap: 12px;
+  flex-shrink: 0;
+  background: rgba(11, 11, 11, .85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border);
+}
+
+.zoom-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.zoom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.zoom-btn:hover {
+  background: var(--bg-card-alt);
+}
+.zoom-label {
+  min-width: 48px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.btn-download {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background var(--transition), box-shadow var(--transition), transform .15s ease;
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+.btn-download:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 6px 24px var(--accent-glow);
+}
+.btn-download:active {
+  transform: scale(.97);
+}
+
+/* ---------- Processing Overlay ---------- */
+.processing-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  background: rgba(0, 0, 0, .8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+}
+.processing-overlay[hidden] {
+  display: none;
+}
+.processing-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, .1);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.processing-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ============================================================
+   ERROR MODAL
+   ============================================================ */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 200;
+}
+.modal-backdrop[hidden] {
+  display: none;
+}
+.modal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 380px;
+  width: calc(100% - 48px);
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.modal-icon {
+  margin-bottom: 16px;
+}
+.error-icon {
+  color: #ff4d6a;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.modal-message {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+.btn-modal-close {
+  padding: 10px 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.btn-modal-close:hover {
+  background: var(--accent-hover);
+}
+
+/* ============================================================
+   RESPONSIVE — Tablet (768px+)
+   ============================================================ */
+@media (min-width: 768px) {
+  .app-header {
+    padding: 20px 40px;
+  }
+  .upload-main {
+    padding: 0 40px;
+    gap: 36px;
+  }
+  .upload-dropzone {
+    padding: 60px 40px;
+  }
+  .editor-header {
+    padding: 14px 32px;
+  }
+  .editor-controls {
+    padding: 14px 32px;
+  }
+  .btn-download {
+    padding: 12px 28px;
+    font-size: 15px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — Desktop (1024px+)
+   ============================================================ */
+@media (min-width: 1024px) {
+  .app-header {
+    padding: 24px 60px;
+  }
+  .upload-main {
+    gap: 40px;
+  }
+  .upload-card {
+    max-width: 520px;
+  }
+  .editor-header {
+    padding: 16px 48px;
+  }
+  .editor-controls {
+    padding: 16px 48px;
+  }
+  .feature-chip {
+    font-size: 13px;
+    padding: 8px 18px;
+  }
+}
+
+/* ============================================================
+   LANDSCAPE MOBILE — Short viewport
+   ============================================================ */
+@media (max-height: 500px) {
+  .hero-section {
+    display: none;
+  }
+  .upload-dropzone {
+    padding: 24px 20px;
+  }
+  .features-row {
+    display: none;
+  }
+  .upload-footer {
+    display: none;
+  }
+  .editor-header {
+    padding: 8px 12px;
+  }
+  .editor-controls {
+    padding: 8px 12px;
+  }
+}
+
+/* ============================================================
+   UTILITY — Safe area for notched phones
+   ============================================================ */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .editor-controls {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  }
+  .upload-footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
