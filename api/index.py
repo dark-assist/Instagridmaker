@@ -6,14 +6,45 @@ and returns a ZIP of 12 JPEG tiles numbered for correct Instagram upload order.
 
 Stack: Flask + Pillow  (Vercel Serverless Function)
 All processing happens in memory — no files written to disk.
+
+Works in two modes:
+  - Vercel: vercel.json handles static files + routes /api/* to Flask
+  - Local:  Flask serves everything (static files + API at /api/*)
 """
 
+import os
 import io
 import zipfile
 from PIL import Image
-from flask import Flask, request, jsonify, Response
+from flask import (
+    Flask, request, jsonify, Response, send_from_directory,
+)
 
-app = Flask(__name__)
+# ---------------------------------------------------------------------------
+# Locate the public/ directory relative to this file
+#   api/index.py  →  ../public/
+# ---------------------------------------------------------------------------
+_THIS_DIR = os.path.abspath(os.path.dirname(__file__))
+_PUBLIC_DIR = os.path.join(_THIS_DIR, os.pardir, 'public')
+
+# ---------------------------------------------------------------------------
+# MIME type map for static files (Flask will auto-detect most, but explicit is safer)
+# ---------------------------------------------------------------------------
+_STATIC_EXTENSIONS = {
+    '.html': 'text/html',
+    '.css':  'text/css',
+    '.js':   'application/javascript',
+    '.json': 'application/json',
+    '.png':  'image/png',
+    '.jpg':  'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.svg':  'image/svg+xml',
+    '.ico':  'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+}
+
+app = Flask(__name__, static_folder=None)
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -23,7 +54,6 @@ ROWS = 4
 TOTAL_TILES = COLS * ROWS  # 12
 MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
 ACCEPTED_MIME = {'image/jpeg', 'image/png', 'image/webp'}
-ALLOWED_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp'}
 JPEG_QUALITY = 92
 ZIP_COMPRESSION = zipfile.ZIP_DEFLATED
 
@@ -182,19 +212,15 @@ def process_image(data):
 
 
 # ---------------------------------------------------------------------------
-# Routes
+# API Routes
 # ---------------------------------------------------------------------------
 
-@app.route('/process-image', methods=['POST'])
-def handle_process_image():
-    """Main API endpoint: receive image + params, return ZIP of grid tiles."""
-
-    # Validate
+def _process_image_handler():
+    """Shared logic for the process-image endpoint (called by both route paths)."""
     validation_err, data = validate_request()
     if validation_err is not None:
         return validation_err
 
-    # Process
     try:
         zip_buffer = process_image(data)
     except ValueError as e:
@@ -203,7 +229,6 @@ def handle_process_image():
         app.logger.error(f'Processing error: {e}', exc_info=True)
         return jsonify(error='An internal error occurred during image processing.'), 500
 
-    # Return ZIP
     return Response(
         zip_buffer.getvalue(),
         mimetype='application/zip',
@@ -214,7 +239,57 @@ def handle_process_image():
     )
 
 
+# Vercel hits this path (vercel.json strips the /api/ prefix)
+@app.route('/process-image', methods=['POST'])
+def handle_process_image():
+    """API endpoint for Vercel: /api/process-image → /process-image"""
+    return _process_image_handler()
+
+
+# Local gunicorn hits this path directly (no reverse proxy to strip prefix)
+@app.route('/api/process-image', methods=['POST'])
+def handle_process_image_api():
+    """API endpoint for local dev: /api/process-image"""
+    return _process_image_handler()
+
+
+# Health check (both paths)
 @app.route('/health', methods=['GET'])
 def health_check():
-    """Simple health check endpoint."""
     return jsonify(status='ok'), 200
+
+
+@app.route('/api/health', methods=['GET'])
+def health_check_api():
+    return jsonify(status='ok'), 200
+
+
+# ---------------------------------------------------------------------------
+# Static File Serving — for local development
+#   Vercel serves static files via vercel.json; these routes are only
+#   needed when running with gunicorn / flask directly.
+# ---------------------------------------------------------------------------
+
+@app.route('/')
+def serve_index():
+    """Serve the main index.html at the root path."""
+    return send_from_directory(_PUBLIC_DIR, 'index.html')
+
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    """
+    Serve any static file from the public/ directory.
+    Falls through to index.html for unknown paths (SPA-style).
+    """
+    filepath = os.path.join(_PUBLIC_DIR, filename)
+
+    # Security: prevent directory traversal
+    if not os.path.abspath(filepath).startswith(os.path.abspath(_PUBLIC_DIR)):
+        return jsonify(error='Not found'), 404
+
+    if os.path.isfile(filepath):
+        return send_from_directory(_PUBLIC_DIR, filename)
+
+    # Unknown path → serve index.html (client-side routing fallback)
+    return send_from_directory(_PUBLIC_DIR, 'index.html')
