@@ -239,28 +239,17 @@ def _process_image_handler():
     )
 
 
-# Vercel hits this path (vercel.json strips the /api/ prefix)
-@app.route('/process-image', methods=['POST'])
-def handle_process_image():
-    """API endpoint for Vercel: /api/process-image → /process-image"""
-    return _process_image_handler()
-
-
-# Local gunicorn hits this path directly (no reverse proxy to strip prefix)
+# Vercel auto-routes /api/* to this Flask app.
+# The /api/ prefix is NOT stripped — Flask routes must include it.
 @app.route('/api/process-image', methods=['POST'])
-def handle_process_image_api():
-    """API endpoint for local dev: /api/process-image"""
+def handle_process_image():
+    """API endpoint: receive image + params, return ZIP of grid tiles."""
     return _process_image_handler()
-
-
-# Health check (both paths)
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify(status='ok'), 200
 
 
 @app.route('/api/health', methods=['GET'])
-def health_check_api():
+def health_check():
+    """Health check endpoint."""
     return jsonify(status='ok'), 200
 
 
