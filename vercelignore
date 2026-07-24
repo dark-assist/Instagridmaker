@@ -1,0 +1,10 @@
+# Prevent internal project files from being exposed as static assets
+api/
+vercel.json
+requirements.txt
+README.md
+.pylintrc
+.gitignore
+.env*
+__pycache__/
+*.pyc
