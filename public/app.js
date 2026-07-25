@@ -467,7 +467,7 @@
   btnDownload.addEventListener('click', downloadGrid);
 
   async function downloadGrid() {
-    if (!originalFile || !state.image) {
+    if (!state.image) {
       showError('No image loaded.');
       return;
     }
@@ -475,40 +475,66 @@
     processingOverlay.hidden = false;
 
     try {
-      const formData = new FormData();
-      formData.append('image', originalFile);
-      formData.append('offsetX', String(state.offsetX));
-      formData.append('offsetY', String(state.offsetY));
-      formData.append('scale', String(state.scale));
-      formData.append('canvasWidth', String(state.gridW));
-      formData.append('canvasHeight', String(state.gridH));
+      const { gridW, gridH, offsetX, offsetY, scale, image } = state;
+      const tileW = gridW / COLS;
+      const tileH = gridH / ROWS;
 
-      const response = await fetch('/api/process-image', {
-        method: 'POST',
-        body: formData,
-      });
+      // Off-screen canvas at native resolution (no DPR — output pixels)
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width  = Math.round(gridW);
+      offCanvas.height = Math.round(gridH);
+      const offCtx = offCanvas.getContext('2d');
 
-      if (!response.ok) {
-        let msg = 'Server error. Please try again.';
-        try {
-          const err = await response.json();
-          msg = err.error || msg;
-        } catch (_) { /* use default message */ }
-        throw new Error(msg);
+      // Replicate the editor transform
+      offCtx.save();
+      offCtx.translate(offsetX, offsetY);
+      offCtx.scale(scale, scale);
+      offCtx.drawImage(image, 0, 0);
+      offCtx.restore();
+
+      // JSZip must be loaded (added via CDN in index.html)
+      if (typeof JSZip === 'undefined') {
+        throw new Error('JSZip not loaded. Please refresh and try again.');
       }
 
-      // Trigger download
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const zip = new JSZip();
+
+      // Slice into COLS × ROWS tiles, numbered in reading order
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const left   = Math.round(col * tileW);
+          const top    = Math.round(row * tileH);
+          const right  = Math.round((col + 1) * tileW);
+          const bottom = Math.round((row + 1) * tileH);
+          const tw = right - left;
+          const th = bottom - top;
+
+          const tileCanvas = document.createElement('canvas');
+          tileCanvas.width  = tw;
+          tileCanvas.height = th;
+          tileCanvas.getContext('2d').drawImage(offCanvas, left, top, tw, th, 0, 0, tw, th);
+
+          // toBlob is async; wrap in Promise
+          const blob = await new Promise((res) =>
+            tileCanvas.toBlob(res, 'image/jpeg', 0.92)
+          );
+
+          const idx = row * COLS + col + 1;
+          const name = `upload_${String(idx).padStart(2, '0')}.jpg`;
+          zip.file(name, blob);
+        }
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+      const url = URL.createObjectURL(zipBlob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'instagram_grid.zip';
       document.body.appendChild(a);
       a.click();
       a.remove();
-
-      // Revoke after a short delay
       setTimeout(() => URL.revokeObjectURL(url), 5000);
+
     } catch (err) {
       showError(err.message || 'Download failed. Please try again.');
     } finally {
