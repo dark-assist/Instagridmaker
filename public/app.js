@@ -178,17 +178,27 @@
    * Accounts for devicePixelRatio for crisp rendering.
    */
   function resizeCanvas() {
+    // REPLACED
     const rect = wrapper.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // The grid occupies the full canvas
-    state.gridW = rect.width;
-    state.gridH = rect.height;
+    // Force 3:4 aspect ratio so each tile is exactly square
+    let gridW, gridH;
+    if (rect.width / rect.height < COLS / ROWS) {
+      gridW = rect.width;
+      gridH = rect.width * ROWS / COLS;
+    } else {
+      gridH = rect.height;
+      gridW = rect.height * COLS / ROWS;
+    }
 
-    canvas.width  = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
-    canvas.style.width  = rect.width + 'px';
-    canvas.style.height = rect.height + 'px';
+    state.gridW = gridW;
+    state.gridH = gridH;
+
+    canvas.width  = Math.round(gridW * dpr);
+    canvas.height = Math.round(gridH * dpr);
+    canvas.style.width  = gridW + 'px';
+    canvas.style.height = gridH + 'px';
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
