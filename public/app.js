@@ -519,7 +519,7 @@
             tileCanvas.toBlob(res, 'image/jpeg', 0.92)
           );
 
-          const idx = row * COLS + col + 1;
+          const idx = (COLS * ROWS) - (row * COLS + col);
           const name = `upload_${String(idx).padStart(2, '0')}.jpg`;
           zip.file(name, blob);
         }
